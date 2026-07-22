@@ -163,6 +163,14 @@ export default function App() {
   }, [messages]);
 
   useEffect(() => {
+    if (!showChatOverlay || !token) return;
+    const interval = setInterval(() => {
+      loadMessages(token);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [showChatOverlay, token]);
+
+  useEffect(() => {
     generatePalette();
   }, []);
 
