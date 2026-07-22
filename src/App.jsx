@@ -16,6 +16,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [userSelectVal, setUserSelectVal] = useState('');
   const [codeVal, setCodeVal] = useState('');
+  const [viewportHeight, setViewportHeight] = useState(null);
   const messagesEndRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -64,8 +65,9 @@ export default function App() {
   const loadMessages = async (authToken) => {
     if (!authToken) return;
     try {
-      const response = await fetch(`${API_URL}/api/chat/messages`, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
+      const response = await fetch(`${API_URL}/api/chat/messages?_=${Date.now()}`, {
+        headers: { 'Authorization': `Bearer ${authToken}` },
+        cache: 'no-store'
       });
       if (response.ok) {
         const data = await response.json();
@@ -187,6 +189,16 @@ export default function App() {
     generatePalette();
   }, []);
 
+  useEffect(() => {
+    if (!window.visualViewport) return;
+    const handleResize = () => {
+      setViewportHeight(window.visualViewport.height);
+    };
+    window.visualViewport.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.visualViewport.removeEventListener('resize', handleResize);
+  }, []);
+
   const styles = {
     app: { background: '#0F172A', color: '#E5E7EB', minHeight: '100vh' },
     header: { background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)', borderBottom: '1px solid #1E40AF', padding: '28px' },
@@ -211,7 +223,7 @@ export default function App() {
     loginCard: { background: '#1E293B', border: '1px solid #334155', borderRadius: '12px', padding: '40px', maxWidth: '380px', width: '100%' },
     label: { display: 'block', fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, marginBottom: '8px' },
     input: { width: '100%', padding: '10px 12px', background: '#0F172A', border: '1px solid #334155', borderRadius: '6px', color: '#E5E7EB', fontSize: '14px', outline: 'none' },
-    chatOverlay: { position: 'fixed', inset: 0, width: '100%', height: '100dvh', background: '#0F172A', display: 'flex', flexDirection: 'column', zIndex: 999, overflow: 'hidden' },
+    chatOverlay: (vh) => ({ position: 'fixed', inset: 0, width: '100%', height: vh ? `${vh}px` : '100dvh', background: '#0F172A', display: 'flex', flexDirection: 'column', zIndex: 999, overflow: 'hidden' }),
     chatHeader: { background: 'linear-gradient(to right, #2563EB, #9333EA)', color: 'white', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 },
     closeBtn: { background: '#DC2626', color: 'white', width: '40px', height: '40px', borderRadius: '6px', border: 'none', fontWeight: 'bold', fontSize: '20px', cursor: 'pointer' },
     chatMessages: { flex: '1 1 auto', minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' },
@@ -308,7 +320,7 @@ export default function App() {
       )}
 
       {showChatOverlay && (
-        <div style={styles.chatOverlay}>
+        <div style={styles.chatOverlay(viewportHeight)}>
           <div style={styles.chatHeader}>
             <div>
               <h2 style={{ margin: 0, fontSize: '18px' }}>Privado</h2>
