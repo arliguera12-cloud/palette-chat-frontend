@@ -166,8 +166,21 @@ export default function App() {
     if (!showChatOverlay || !token) return;
     const interval = setInterval(() => {
       loadMessages(token);
-    }, 3000);
-    return () => clearInterval(interval);
+    }, 2000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        loadMessages(token);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+    };
   }, [showChatOverlay, token]);
 
   useEffect(() => {
@@ -198,12 +211,12 @@ export default function App() {
     loginCard: { background: '#1E293B', border: '1px solid #334155', borderRadius: '12px', padding: '40px', maxWidth: '380px', width: '100%' },
     label: { display: 'block', fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, marginBottom: '8px' },
     input: { width: '100%', padding: '10px 12px', background: '#0F172A', border: '1px solid #334155', borderRadius: '6px', color: '#E5E7EB', fontSize: '14px', outline: 'none' },
-    chatOverlay: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', background: '#0F172A', display: 'flex', flexDirection: 'column', zIndex: 999 },
-    chatHeader: { background: 'linear-gradient(to right, #2563EB, #9333EA)', color: 'white', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    chatOverlay: { position: 'fixed', inset: 0, width: '100%', height: '100dvh', background: '#0F172A', display: 'flex', flexDirection: 'column', zIndex: 999, overflow: 'hidden' },
+    chatHeader: { background: 'linear-gradient(to right, #2563EB, #9333EA)', color: 'white', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 },
     closeBtn: { background: '#DC2626', color: 'white', width: '40px', height: '40px', borderRadius: '6px', border: 'none', fontWeight: 'bold', fontSize: '20px', cursor: 'pointer' },
-    chatMessages: { flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' },
+    chatMessages: { flex: '1 1 auto', minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' },
     msgBubble: (mine) => ({ maxWidth: '70%', padding: '10px 14px', borderRadius: '12px', background: mine ? '#2563EB' : '#334155', color: mine ? 'white' : '#E5E7EB', alignSelf: mine ? 'flex-end' : 'flex-start' }),
-    chatInputArea: { background: '#1E293B', borderTop: '1px solid #334155', padding: '16px 24px' },
+    chatInputArea: { background: '#1E293B', borderTop: '1px solid #334155', padding: '16px 24px', flexShrink: 0, paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' },
   };
 
   return (
