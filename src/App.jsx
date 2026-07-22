@@ -332,7 +332,7 @@ export default function App() {
           <div style={styles.chatHeader}>
             <div>
               <h2 style={{ margin: 0, fontSize: '18px' }}>Privado</h2>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', opacity: 0.9 }}>Historial persistente</p>
+              <p style={{ margin: '4px 0 0 0', fontSize: '12px', opacity: 0.9 }}>Historial persistente · v3</p>
             </div>
             <button onClick={handleCloseChat} style={styles.closeBtn}>✕</button>
           </div>
