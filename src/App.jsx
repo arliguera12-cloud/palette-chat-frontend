@@ -7,6 +7,45 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ── Push notifications ──
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+async function registerPush(authToken) {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    await fetch(`${API_URL}/api/push/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+      body: JSON.stringify({ subscription: sub.toJSON() })
+    });
+    console.log('Push registrado OK');
+  } catch (err) {
+    console.log('Push no disponible:', err);
+  }
+}
+
 const HARMONY_MODES = ['complementary', 'triadic', 'analogous', 'monochromatic'];
 const HARMONY_LABELS = { complementary: 'Complementario', triadic: 'Triádico', analogous: 'Análogo', monochromatic: 'Monocromático' };
 
@@ -174,6 +213,7 @@ export default function App() {
       setShowChat(true);
       markRead(data.token);
       subscribeRealtime(data.token);
+      registerPush(data.token);
     } catch {
       setLoginError('❌ Usuario o código incorrecto');
     } finally {
