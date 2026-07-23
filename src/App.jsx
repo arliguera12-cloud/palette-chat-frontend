@@ -126,6 +126,19 @@ export default function App() {
   // ──────────────────────────────────────────
   // Keep-alive (Render no se duerme)
   // ──────────────────────────────────────────
+  // markRead al volver al foco
+  useEffect(() => {
+    if (!showChat || !token) return;
+    const onFocus = () => markRead(token);
+    const onVis = () => { if (document.visibilityState === 'visible') markRead(token); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [showChat, token]);
+
   useEffect(() => {
     const ping = () => fetch(`${API_URL}/health`).catch(() => {});
     const iv = setInterval(ping, 10 * 60 * 1000);
@@ -202,7 +215,8 @@ export default function App() {
               setMessages(allMsgs);
             }
           } catch {}
-          markRead(authToken);
+          // Marcar como leidos los mensajes del otro usuario
+          setTimeout(() => markRead(authToken), 500);
         } else if (payload.eventType === 'UPDATE') {
           setMessages(prev => prev.map(m => m.id === payload.new.id ? { ...m, ...payload.new } : m));
         } else if (payload.eventType === 'DELETE') {
