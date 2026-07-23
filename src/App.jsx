@@ -191,18 +191,17 @@ export default function App() {
       .channel('private-chat')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'private_chat_messages' }, async (payload) => {
         if (payload.eventType === 'INSERT') {
-          const newMsg = payload.new;
-          // Obtener signed_url si tiene media
-          if (newMsg.media_url) {
-            try {
-              const signed = await supabase.storage.from('chat-media').createSignedUrl(newMsg.media_url, 3600);
-              newMsg.signed_url = signed.data?.signedUrl;
-            } catch {}
-          }
-          setMessages(prev => {
-            if (prev.find(m => m.id === newMsg.id)) return prev;
-            return [...prev, newMsg];
-          });
+          // Fetch completo del mensaje para asegurar todos los campos
+          try {
+            const res = await fetch(`${API_URL}/api/chat/messages?_=${Date.now()}`, {
+              headers: { 'Authorization': `Bearer ${authToken}` },
+              cache: 'no-store'
+            });
+            if (res.ok) {
+              const allMsgs = await res.json();
+              setMessages(allMsgs);
+            }
+          } catch {}
           markRead(authToken);
         } else if (payload.eventType === 'UPDATE') {
           setMessages(prev => prev.map(m => m.id === payload.new.id ? { ...m, ...payload.new } : m));
