@@ -500,14 +500,15 @@ export default function App() {
               const deleted = !!msg.deleted_at;
               return (
                 <div key={msg.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: 4 }}
-                  onMouseDown={() => !deleted && startLongPress(msg)}
-                  onMouseUp={cancelLongPress}
+                  onContextMenu={(e) => { e.preventDefault(); if (!deleted) setLongPressMsg(msg); }}
                   onTouchStart={() => !deleted && startLongPress(msg)}
-                  onTouchEnd={cancelLongPress}>
+                  onTouchEnd={cancelLongPress}
+                  onTouchMove={cancelLongPress}>
                   <div style={{
                     maxWidth: '75%', padding: '8px 12px', borderRadius: mine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                     background: deleted ? '#1E293B' : mine ? '#2563EB' : '#1E293B',
                     border: deleted ? '1px solid #334155' : 'none',
+                    minWidth: deleted ? 140 : undefined,
                     color: deleted ? '#64748B' : '#fff', fontSize: 14, lineHeight: 1.45
                   }}>
                     {!deleted && replyPreview(msg)}
