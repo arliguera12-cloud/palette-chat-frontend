@@ -515,7 +515,7 @@ export default function App() {
                       ? <span style={{ fontStyle: 'italic' }}>🚫 Mensaje eliminado</span>
                       : <>
                           {mediaPreview(msg)}
-                          {msg.text && <div>{msg.text}</div>}
+                          {msg.text && !msg.media_url && <div>{msg.text}</div>}
                         </>
                     }
                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 4, marginTop: 3 }}>
